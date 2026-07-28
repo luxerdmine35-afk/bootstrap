@@ -1,0 +1,46 @@
+name: build-bootstrap
+
+"on":
+  workflow_dispatch:      # bisa di-trigger manual dari tab "Actions" di GitHub
+  push:
+    paths:
+      - "bootstrap.py"    # otomatis jalan tiap bootstrap.py diubah & di-push
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: bootstrap.exe
+            output_flag: --output-filename=bootstrap.exe
+          - os: ubuntu-latest
+            artifact_name: bootstrap
+            output_flag: --output-filename=bootstrap
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python (pinned 3.12, hindari warning experimental Nuitka di 3.14)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka
+          pip install requests colorama cryptography
+
+      - name: Compile with Nuitka
+        run: python -m nuitka --onefile ${{ matrix.output_flag }} bootstrap.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-${{ matrix.os }}
+          path: ${{ matrix.artifact_name }}
