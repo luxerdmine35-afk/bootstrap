@@ -13,11 +13,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: bootstrap.exe
-            output_flag: --output-filename=bootstrap.exe
+            artifact_name: LIVEXORDS.exe
+            output_flag: --output-filename=LIVEXORDS.exe
           - os: ubuntu-latest
-            artifact_name: bootstrap
-            output_flag: --output-filename=bootstrap
+            artifact_name: LIVEXORDS
+            output_flag: --output-filename=LIVEXORDS
 
     runs-on: ${{ matrix.os }}
 
