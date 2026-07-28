@@ -9,6 +9,18 @@ import hashlib
 import requests
 from cryptography.fernet import Fernet
 
+import uuid  # noqa: F401
+import platform  # noqa: F401
+import socket  # noqa: F401
+import json  # noqa: F401
+import gzip  # noqa: F401
+import zlib  # noqa: F401
+import base64  # noqa: F401
+import importlib.util  # noqa: F401
+import random  # noqa: F401
+import gc  # noqa: F401
+import inspect  # noqa: F401
+
 
 def get_pip_cmd():
     candidates = [[sys.executable, "-m", "pip"], ["pip"], ["pip3"]]
@@ -75,7 +87,7 @@ def pip_cache_clean():
 
 init(autoreset=True)
 
-LAUNCHER_URLS = ["https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/launcher.py.enc"]
+LAUNCHER_URLS = ["https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/launcher.py"]
 SERVER_URL_SOURCE = "https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/url.txt"
 
 
