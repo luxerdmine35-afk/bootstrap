@@ -37,7 +37,7 @@ jobs:
           pip install requests colorama cryptography
 
       - name: Compile with Nuitka
-        run: python -m nuitka --onefile ${{ matrix.output_flag }} bootstrap.py
+        run: python -m nuitka --onefile --assume-yes-for-downloads ${{ matrix.output_flag }} bootstrap.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
