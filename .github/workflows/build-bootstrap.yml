@@ -56,9 +56,24 @@ jobs:
         id: include_flags
         shell: bash
         run: |
+          # Mapping nama pip -> nama import ASLI (Nuitka butuh nama import, bukan nama pip).
+          # Tambahin baris baru di sini kalau nanti ketemu package lain yang beda nama.
+          map_import_name() {
+            case "$1" in
+              pycryptodome) echo "Crypto" ;;
+              Pillow|pillow) echo "PIL" ;;
+              beautifulsoup4) echo "bs4" ;;
+              python-dotenv) echo "dotenv" ;;
+              PyYAML|pyyaml) echo "yaml" ;;
+              opencv-python) echo "cv2" ;;
+              *) echo "$1" ;;
+            esac
+          }
+
           FLAGS="--include-package=requests --include-package=colorama --include-package=cryptography"
           for pkg in $(grep -vE '^\s*#|^\s*$' requirements.txt); do
-            FLAGS="$FLAGS --include-package=$pkg"
+            import_name=$(map_import_name "$pkg")
+            FLAGS="$FLAGS --include-package=$import_name"
           done
           echo "flags=$FLAGS" >> "$GITHUB_OUTPUT"
 
