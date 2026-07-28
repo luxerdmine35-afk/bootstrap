@@ -1,10 +1,16 @@
-name: build-bootstrap
+name: build-bootstrap-per-bot
 
 "on":
-  workflow_dispatch:      # bisa di-trigger manual dari tab "Actions" di GitHub
-  push:
-    paths:
-      - "bootstrap.py"    # otomatis jalan tiap bootstrap.py diubah & di-push
+  workflow_dispatch:
+    inputs:
+      bot_name:
+        description: "Nama bot (dipakai buat nama file hasil, misal: paidadz, seotask)"
+        required: true
+        type: string
+      requirements_path:
+        description: "Path relatif ke requirements.txt bot ini DI DALAM repo ini (misal: requirements/paidadz.txt)"
+        required: true
+        type: string
 
 jobs:
   build:
@@ -13,34 +19,59 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: LIVEXORDS.exe
-            output_flag: --output-filename=LIVEXORDS.exe
+            ext: ".exe"
           - os: ubuntu-latest
-            artifact_name: LIVEXORDS
-            output_flag: --output-filename=LIVEXORDS
+            ext: ""
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (bootstrap.py + requirements/)
         uses: actions/checkout@v4
 
-      - name: Setup Python (pinned 3.12, hindari warning experimental Nuitka di 3.14)
+      - name: Setup Python (pinned 3.12)
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Pastikan requirements.txt bot ini ada
+        shell: bash
+        run: |
+          if [ ! -f "${{ inputs.requirements_path }}" ]; then
+            echo "❌ File tidak ditemukan: ${{ inputs.requirements_path }}"
+            exit 1
+          fi
+          cp "${{ inputs.requirements_path }}" requirements.txt
+          echo "isi requirements.txt untuk bot ${{ inputs.bot_name }}:"
+          cat requirements.txt
+
+      - name: Install dependencies (base + spesifik bot ini)
         run: |
           python -m pip install --upgrade pip
           pip install nuitka
           pip install requests colorama cryptography
+          pip install -r requirements.txt
+
+      - name: Build --include-package flags dari requirements.txt bot ini
+        id: include_flags
+        shell: bash
+        run: |
+          FLAGS="--include-package=requests --include-package=colorama --include-package=cryptography"
+          for pkg in $(grep -vE '^\s*#|^\s*$' requirements.txt); do
+            FLAGS="$FLAGS --include-package=$pkg"
+          done
+          echo "flags=$FLAGS" >> "$GITHUB_OUTPUT"
 
       - name: Compile with Nuitka
-        run: python -m nuitka --onefile --assume-yes-for-downloads ${{ matrix.output_flag }} bootstrap.py
+        shell: bash
+        run: |
+          python -m nuitka --onefile --assume-yes-for-downloads \
+            ${{ steps.include_flags.outputs.flags }} \
+            --output-filename=${{ inputs.bot_name }}${{ matrix.ext }} \
+            bootstrap.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}-${{ matrix.os }}
-          path: ${{ matrix.artifact_name }}
+          name: ${{ inputs.bot_name }}-${{ matrix.os }}
+          path: ${{ inputs.bot_name }}${{ matrix.ext }}
