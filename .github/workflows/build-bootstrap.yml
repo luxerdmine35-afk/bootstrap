@@ -1,4 +1,5 @@
 name: build-bootstrap-per-bot
+run-name: "Build ${{ inputs.bot_name }} by @${{ github.actor }}"
 
 "on":
   workflow_dispatch:
