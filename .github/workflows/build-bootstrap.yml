@@ -25,7 +25,7 @@ jobs:
             ext: ""
 
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 90 || 45 }}
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 100 || 60 }}
     env:
       NUITKA_CACHE_DIR: ${{ github.workspace }}/.nuitka-cache
 
@@ -40,6 +40,10 @@ jobs:
           cache: "pip"
           cache-dependency-path: "requirements/*.txt"
 
+      - name: Install ccache (Linux only -- speeds up repeat C compiles)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y ccache
+
       - name: Pastikan requirements.txt bot ini ada
         shell: bash
         run: |
@@ -50,6 +54,16 @@ jobs:
           cp "${{ inputs.requirements_path }}" requirements.txt
           echo "isi requirements.txt untuk bot ${{ inputs.bot_name }}:"
           cat requirements.txt
+
+      - name: Cache ccache directory (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ matrix.os }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('bootstrap.py') }}
+          restore-keys: |
+            ccache-${{ matrix.os }}-${{ hashFiles('requirements.txt') }}-
+            ccache-${{ matrix.os }}-
 
       - name: Cache Nuitka compilation cache
         uses: actions/cache@v4
