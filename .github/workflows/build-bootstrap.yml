@@ -26,6 +26,8 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 90 || 45 }}
+    env:
+      NUITKA_CACHE_DIR: ${{ github.workspace }}/.nuitka-cache
 
     steps:
       - name: Checkout repo (bootstrap.py + requirements/)
@@ -48,6 +50,15 @@ jobs:
           cp "${{ inputs.requirements_path }}" requirements.txt
           echo "isi requirements.txt untuk bot ${{ inputs.bot_name }}:"
           cat requirements.txt
+
+      - name: Cache Nuitka compilation cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.nuitka-cache
+          key: nuitka-${{ matrix.os }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('bootstrap.py') }}
+          restore-keys: |
+            nuitka-${{ matrix.os }}-${{ hashFiles('requirements.txt') }}-
+            nuitka-${{ matrix.os }}-
 
       - name: Install dependencies (base + spesifik bot ini)
         run: |
