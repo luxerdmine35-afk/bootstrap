@@ -1,0 +1,15 @@
+aiofiles
+aiohttp
+brotli
+colorama
+cryptography
+curl_cffi
+fake_useragent
+flask
+multidict
+orjson
+psutil
+requests
+selenium
+tls_client
+undetected_chromedriver
