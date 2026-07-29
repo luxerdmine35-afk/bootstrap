@@ -1,0 +1,11 @@
+aiofiles
+aiohttp
+colorama
+curl_cffi
+fake_useragent
+multidict
+orjson
+psutil
+brotli
+requests
+tls_client
