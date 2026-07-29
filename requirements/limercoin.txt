@@ -1,0 +1,16 @@
+aiofiles
+aiohttp
+brotli
+colorama
+cryptography
+curl_cffi
+fake_useragent
+flask
+flask_cors
+multidict
+orjson
+psutil
+pycryptodome
+requests
+selenium
+tls_client
