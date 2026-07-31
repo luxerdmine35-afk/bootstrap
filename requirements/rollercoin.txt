@@ -9,5 +9,5 @@ multidict
 orjson
 psutil
 pycryptodome
-requests
 tls_client
+truststore
