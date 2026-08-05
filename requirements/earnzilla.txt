@@ -1,3 +1,4 @@
+Pillow
 aiofiles
 aiohttp
 brotli
@@ -8,5 +9,5 @@ fake_useragent
 multidict
 orjson
 psutil
-requests
 tls_client
+truststore
