@@ -9,6 +9,6 @@ fake_useragent
 multidict
 orjson
 psutil
-requests
 selenium
 tls_client
+truststore
