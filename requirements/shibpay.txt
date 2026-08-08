@@ -1,0 +1,13 @@
+Pillow
+aiofiles
+aiohttp
+brotli
+colorama
+cryptography
+curl_cffi
+fake_useragent
+multidict
+orjson
+psutil
+tls_client
+truststore
