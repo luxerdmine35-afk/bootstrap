@@ -11,6 +11,6 @@ multidict
 orjson
 psutil
 pycryptodome
-requests
 selenium
 tls_client
+truststore
