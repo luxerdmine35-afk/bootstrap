@@ -109,7 +109,14 @@ jobs:
             pkg="$(echo "$pkg" | xargs)"
             [ -z "$pkg" ] && continue
             import_name=$(map_import_name "$pkg")
-            FLAGS="$FLAGS --include-package=$import_name"
+            # Cek beneran ke-import atau nggak di platform ini -- otomatis skip
+            # package yang di-exclude sama environment marker-nya (mis. uvloop
+            # di Windows), tanpa perlu bash ngerti sintaks PEP 508.
+            if python -c "import $import_name" >/dev/null 2>&1; then
+              FLAGS="$FLAGS --include-package=$import_name"
+            else
+              echo "⏭️  Skip --include-package=$import_name (tidak terinstall di platform ini)"
+            fi
           done < requirements.txt
           echo "flags=$FLAGS" >> "$GITHUB_OUTPUT"
 
