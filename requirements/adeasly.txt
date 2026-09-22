@@ -1,13 +1,11 @@
 aiofiles
 aiohttp
-brotli
 colorama
-cryptography
 curl_cffi
 fake_useragent
 multidict
 orjson
 psutil
+requests
 tls_client
-truststore
-uvloop; sys_platform != "win32"
+brotli
