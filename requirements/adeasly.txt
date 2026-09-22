@@ -10,4 +10,4 @@ orjson
 psutil
 tls_client
 truststore
-uvloop
+uvloop; sys_platform != "win32"
