@@ -12,3 +12,4 @@ psutil
 selenium
 tls_client
 truststore
+uvloop; sys_platform != "win32"
