@@ -9,3 +9,5 @@ multidict
 orjson
 psutil
 tls_client
+truststore
+uvloop; sys_platform != "win32"
