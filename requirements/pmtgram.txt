@@ -8,6 +8,6 @@ fake_useragent
 multidict
 orjson
 psutil
-tls_client
+tls_client==1.0.1
 truststore
 uvloop; sys_platform != "win32"
