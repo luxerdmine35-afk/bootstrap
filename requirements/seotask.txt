@@ -1,14 +1,14 @@
-Pillow
-aiofiles
-aiohttp
-brotli
-colorama
-cryptography
-curl_cffi
-fake_useragent
-multidict
-orjson
-psutil
-tls_client
-truststore
-uvloop; sys_platform != "win32"
+aiofiles>=25.1.0,<26
+aiohttp>=3.13.3,<4
+brotli>=1.2.0,<2
+colorama>=0.4.6,<0.5
+cryptography>=48.0.1,<49
+curl_cffi>=0.16.3,<0.17
+fake_useragent>=2.2.0,<3
+multidict>=6.7.1,<7
+orjson>=3.11.7,<4
+Pillow>=12.3.0,<13
+psutil>=7.2.2,<8
+tls_client>=1.0.1,<2
+truststore>=0.10.5,<0.11
+uvloop>=0.23.0,<0.24; sys_platform != "win32"
