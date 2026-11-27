@@ -75,6 +75,7 @@ def pip_cache_clean():
 
 init(autoreset=True)
 LAUNCHER_URLS = ["https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/launcher.py.enc"]
+LAUNCHER_API_URL = "https://api.github.com/repos/LIVEXORD/url/contents/launcher.py.enc?ref=main"
 SERVER_URL_SOURCE = "https://raw.githubusercontent.com/LIVEXORD/url/refs/heads/main/url.txt"
 
 
@@ -132,11 +133,16 @@ def fetch_launcher_meta(server_url, max_retry=5):
     sys.exit(1)
 
 
-def fetch_launcher_ciphertext():
-    for url in LAUNCHER_URLS:
+def fetch_launcher_ciphertext(prefer_fresh=False):
+    # raw.githubusercontent.com cache 300 dtk dan mengabaikan query string;
+    # api.github.com (media type raw) cache hanya 60 dtk -> dipakai saat retry.
+    sources = [(u, None) for u in LAUNCHER_URLS]
+    if prefer_fresh:
+        sources.insert(0, (LAUNCHER_API_URL, {"Accept": "application/vnd.github.raw"}))
+    for url, headers in sources:
         try:
             log(f"🌐 Trying {url}", Fore.CYAN)
-            r = requests.get(url, timeout=10)
+            r = requests.get(url, timeout=10, headers=headers)
             if r.status_code == 200 and len(r.text.strip()) > 100:
                 log("✅ Launcher ciphertext fetched successfully", Fore.GREEN)
                 return r.text.strip()
@@ -155,18 +161,30 @@ def main():
     log("🌐 Resolving server URL...", Fore.CYAN)
     server_url = fetch_server_url()
     log("🔑 Fetching launcher integrity metadata...", Fore.CYAN)
-    expected_hash, enc_key, version = fetch_launcher_meta(server_url)
-    ciphertext = fetch_launcher_ciphertext()
-    try:
-        plaintext_bytes = Fernet(enc_key.encode()).decrypt(ciphertext.encode())
-    except Exception as e:
-        log(f"❌ Failed to decrypt launcher: {e}", Fore.RED)
-        os._exit(1)
-    source = plaintext_bytes.decode("utf-8")
-    actual_hash = hashlib.sha256(source.encode()).hexdigest()
-    if actual_hash != expected_hash:
-        time.sleep(2)
-        log("❌ Integrity check failed", Fore.RED)
+    # raw.githubusercontent.com meng-cache ~5 menit: ciphertext lama + meta baru
+    # (atau sebaliknya) membuat dekripsi/hash gagal sesaat. Ambil ulang meta dan
+    # ciphertext bersama (ciphertext dari api.github.com, cache 60 dtk) sebelum menyerah.
+    source = version = None
+    last_err = "unknown"
+    for attempt in range(1, 7):
+        expected_hash, enc_key, version = fetch_launcher_meta(server_url)
+        ciphertext = fetch_launcher_ciphertext(prefer_fresh=attempt > 1)
+        try:
+            plaintext_bytes = Fernet(enc_key.encode()).decrypt(ciphertext.encode())
+            candidate = plaintext_bytes.decode("utf-8")
+            if hashlib.sha256(candidate.encode()).hexdigest() != expected_hash:
+                raise ValueError("integrity hash mismatch")
+            source = candidate
+            break
+        except Exception as e:
+            last_err = f"{type(e).__name__}: {e}"
+            if attempt >= 6:
+                break
+            wait = min(10 * attempt, 60)
+            log(f"⚠️ Launcher decrypt/verify failed (stale cache?), refetching in {wait}s... ({attempt}/6)", Fore.YELLOW)
+            time.sleep(wait)
+    if source is None:
+        log(f"❌ Failed to decrypt/verify launcher after retries: {last_err}", Fore.RED)
         os._exit(1)
     log(f"🚀 Running launcher v{version}...\n", Fore.MAGENTA)
     exec(source, {"__name__": "__main__"})
