@@ -77,7 +77,7 @@ jobs:
       - name: Install dependencies (base + spesifik bot ini)
         run: |
           python -m pip install --upgrade pip
-          pip install nuitka zstandard
+          pip install "nuitka==4.3.5" zstandard  # pin: 4.4 menjalankan ldd pada tls-client-arm64 dan gagal (27 Nov 2026)
           pip install requests colorama cryptography
           pip install -r requirements.txt
 
